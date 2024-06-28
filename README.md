@@ -28,9 +28,9 @@ CREATE SECURITY INTEGRATION IF NOT EXISTS streamlit_integration
 
 -- drop application package pr_streamlit_package;
 
-CREATE APPLICATION PACKAGE pr_streamlit_package;
+CREATE APPLICATION PACKAGE pr_cortex_na_package;
 
-USE DATABASE pr_streamlit_package;
+USE DATABASE pr_cortex_na_package;
 
 -- Upload all the files required for the native app in following folder
 LIST @pr_call_centre_analytics_db.public.na_stage/streamlit/v01/;
@@ -45,22 +45,23 @@ LIST @pr_call_centre_analytics_db.public.na_stage/streamlit/v01/;
 
 show application packages like 'pr%';
 
-SHOW VERSIONS IN APPLICATION PACKAGE pr_streamlit_package;
+-- Check the package version after uploading the files
+ SHOW VERSIONS IN APPLICATION PACKAGE pr_cortex_na_package;
 
-ALTER APPLICATION PACKAGE pr_streamlit_package
+-- Adding version to the package
+ALTER APPLICATION PACKAGE pr_cortex_na_package
   ADD VERSION "v1_0"
   USING @pr_call_centre_analytics_db.public.na_stage/streamlit/v01;
 
-SHOW VERSIONS IN APPLICATION PACKAGE pr_streamlit_package;
-
-
+-- Creating App from the package
 CREATE APPLICATION pr_call_centre_analytics_app
-  FROM APPLICATION PACKAGE pr_streamlit_package
+  FROM APPLICATION PACKAGE pr_cortex_na_package
   USING VERSION "v1_0";
 
 DESC APPLICATION pr_call_centre_analytics_app;
 
-GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO APPLICATION pr_call_centre_analytics_app;
+-- Grant the below permission to the app. This is required to use cortex LLM functions
+GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO APPLICATION pr_call_centre_analytics_app
 
 
 ```
@@ -70,11 +71,6 @@ GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO APPLICATION pr_call_centre_an
 ```sql
 -- There should be no files
  ls @pr_call_centre_analytics_app.app_public.data_stage;
-
--- Uploading files to a stage by invoking the SP in the NA.
-  CALL pr_call_centre_analytics_app.core.copy_file('/data/Sample_Audio_Text.csv', '@app_public.data_stage/Sample_Audio_Text.csv');
-
-   ls @pr_call_centre_analytics_app.app_public.data_stage;
 
  -- Loads the data in required tables. This fuctions uses the cortex LLM fucntions
  CALL pr_call_centre_analytics_app.code_schema.load_data();
