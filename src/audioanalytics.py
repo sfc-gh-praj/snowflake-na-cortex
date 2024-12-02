@@ -21,7 +21,7 @@ def init_data(session: Session) -> str:
    """
   # session.file.put('../data/Sample_Audio_Text.csv', '@app_public.data_stage')
 
-  # session.call('core.copy_file','/data/Sample_Audio_Text.csv', '@app_public.data_stage/Sample_Audio_Text.csv')
+  session.call('core.copy_file','/data/Sample_Audio_Text.csv', '@app_public.data_stage/Sample_Audio_Text.csv')
 
   sp_df=session.read.options({"INFER_SCHEMA":True,"PARSE_HEADER":True,"FIELD_OPTIONALLY_ENCLOSED_BY":'"'}).csv('@app_public.data_stage/Sample_Audio_Text.csv')
   sp_df.write.mode("append").save_as_table("app_public.ALL_CLAIMS_RAW")
